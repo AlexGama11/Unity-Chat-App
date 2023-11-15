@@ -14,6 +14,7 @@ public class TcpServer : MonoBehaviour
 
     private Thread serverThread = null;
     NetworkStream stream;
+
     void Start()
     {
         CreateServer();
@@ -28,8 +29,8 @@ public class TcpServer : MonoBehaviour
 
     void ReceiverThread()
     {
-        IPAddress iPAddress = IPAddress.Parse(Globals.ipAddress);
-        port = Int32.Parse(Globals.port);
+        IPAddress iPAddress = IPAddress.Parse(Globals.IpAddress);
+        port = Int32.Parse(Globals.Port);
         Debug.Log(iPAddress.ToString());
         server = new TcpListener(iPAddress, port);
         server.Start();

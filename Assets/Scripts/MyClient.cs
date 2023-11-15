@@ -32,8 +32,8 @@ public class MyClient : MonoBehaviour
 
     void ConnectedToServer()
     {
-        host = Globals.ipAddress;
-        port = Int32.Parse(Globals.port);
+        host = Globals.IpAddress;
+        port = Int32.Parse(Globals.Port);
         client = new TcpClient(host, port);
         stream = client.GetStream();
         SendData("This is Client Speaking");

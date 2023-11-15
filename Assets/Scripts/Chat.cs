@@ -9,6 +9,8 @@ using System;
 
 public class Chat : MonoBehaviour
 {
+    public TMP_InputField messageField;
+
    // Start is called before the first frame update
     void Start()
     {
