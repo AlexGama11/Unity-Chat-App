@@ -1,63 +1,50 @@
-using System.Collections;
-using System.Collections.Generic;
-using System.Net.Sockets;
-using UnityEditor.PackageManager;
 using UnityEngine;
-using System;
+using System.Net.Sockets;
 using System.Threading;
-
 
 public class MyClient : MonoBehaviour
 {
-    TcpClient client = null;
-    public string host;
-    public int port;
+    public static MyClient Instance;
+    private TcpClient client;
+    private NetworkStream stream;
+    private Thread receiverThread;
 
-    NetworkStream stream;
-
-    Thread receiverThread;
-
-    void Start()
+    private void Awake()
     {
-
+        Instance = this;
     }
 
-    private void Update()
+    public void ConnectToServer()
     {
-        if (Input.GetKeyDown(KeyCode.C))
-        {
-            ConnectedToServer();
-        }
-    }
-
-    void ConnectedToServer()
-    {
-        host = Globals.ipAddress;
-        port = Int32.Parse(Globals.port);
-        client = new TcpClient(host, port);
+        client = new TcpClient(Globals.ipAddressString, Globals.port);
         stream = client.GetStream();
-        SendData("This is Client Speaking");
-        receiverThread = new Thread(ReceiveData);
+        SendMessage("This is Client Speaking");
+
+        // Start a separate thread for receiving messages
+        receiverThread = new Thread(ReceiveMessage);
         receiverThread.Start();
-        SendData("Hi this is client");
     }
 
-    private void SendData(string msg)
+    public void SendMessage(string msg)
     {
-        Byte[] bytes = System.Text.Encoding.ASCII.GetBytes(msg);
+        byte[] bytes = System.Text.Encoding.ASCII.GetBytes(msg);
         stream.Write(bytes, 0, bytes.Length);
         Debug.Log("Client Sent :: " + msg);
-
     }
 
-    private void ReceiveData()
+    void ReceiveMessage()
     {
         while (true)
         {
-            Byte[] bytes = new byte[256];
-            stream.Read(bytes, 0, bytes.Length);
-            string msgFromServer = System.Text.Encoding.ASCII.GetString(bytes);
-            Debug.Log("Message from Server test:: " + msgFromServer);
+            byte[] bytes = new byte[256];
+            int bytesRead = stream.Read(bytes, 0, bytes.Length);
+
+            if (bytesRead > 0)
+            {
+                string msgFromServer = System.Text.Encoding.ASCII.GetString(bytes, 0, bytesRead);
+                Debug.Log("Message from Server :: " + msgFromServer);
+                // Add any additional processing or pass the message to other scripts
+            }
         }
     }
 }
