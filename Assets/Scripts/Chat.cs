@@ -6,7 +6,7 @@ public class Chat : MonoBehaviour
 {
     public TMP_InputField chatInput;
     public Transform chatContentBox;
-    public Message MessagePrefab;
+    public MessageBubble chatBubble;
     public string chatMessage;
 
     public Button sendButton;
@@ -20,17 +20,21 @@ public class Chat : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-      GetChatInput();
+        if (chatInput.text != string.Empty)
+        {
+            GetChatInput();
+        }
+
+      if (Globals.isConnected)
+        {
+            DisplayMessage(); // Change to OnMessageReceived event
+        }
     }
 
     void GetChatInput()
     {
-        if (chatInput.text != string.Empty)
-        {
-            chatMessage = chatInput.text;
-            //Debug.Log(chatMessage);
-        }
-        
+       chatMessage = chatInput.text;
+       //Debug.Log(chatMessage);
     }
 
     void SendMessage()
@@ -50,6 +54,26 @@ public class Chat : MonoBehaviour
 
     void DisplayMessage()
     {
-        //OnMessageReceive, display message. Instantiate Prefab.
+        if (Globals.isServer)
+        {
+            if (Server.Instance.ReceiveMessage() != null)
+            {
+                MessageBubble newMessageBubble = Instantiate(chatBubble, chatContentBox);
+                newMessageBubble.messageText = Server.Instance.ReceiveMessage();
+                newMessageBubble.userText = Globals.Username + ":"; // to replace with receiving usernames.
+
+            }
+            Debug.Log(chatMessage);
+        }
+
+        else
+        {
+            if (MyClient.Instance.ReceiveMessage() != null)
+            {
+                MessageBubble newMessageBubble = Instantiate(chatBubble, chatContentBox);
+                newMessageBubble.messageText = MyClient.Instance.ReceiveMessage();
+                newMessageBubble.userText = Globals.Username + ":"; // to replace with receiving usernames.
+            }
+        }
     }
 }

@@ -17,16 +17,17 @@ public class Server : MonoBehaviour
 
     public void CreateServer()
     {
+        Debug.Log(Globals.ipAddressString);
+        server = new TcpListener(Globals.ipAddress, Globals.port);
+        server.Start();
+        Debug.Log("Server created successfully");
         serverThread = new Thread(ReceiverThread);
         serverThread.Start();
     }
 
     void ReceiverThread()
     {
-        Debug.Log(Globals.ipAddressString);
-        server = new TcpListener(Globals.ipAddress, Globals.port);
-        server.Start();
-        Debug.Log("Server created successfully");
+
 
         while (true)
         {
@@ -37,6 +38,7 @@ public class Server : MonoBehaviour
                 Debug.Log("Client is connected :: " + client.Client.LocalEndPoint);
                 stream = client.GetStream();
                 StartReceiving();
+                Globals.isConnected = true;
             }
         }
     }

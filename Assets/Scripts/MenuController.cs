@@ -15,6 +15,7 @@ public static class Globals
     public static IPAddress ipAddress;
     public static int port;
     public static Boolean isServer;
+    public static Boolean isConnected = false;
 }
 
 public class MenuController : MonoBehaviour
@@ -38,12 +39,6 @@ public class MenuController : MonoBehaviour
         joinButton.onClick.AddListener(OpenClient);
     }
 
-    // Update is called once per frame
-    private void Update()
-    {
-        GetInput();
-    }
-
     private void GetInput()
     {
 
@@ -59,19 +54,27 @@ public class MenuController : MonoBehaviour
 
     public void HostServer()
     {
+        GetInput();
         serverObject.SetActive(true);
-        chatPanel.SetActive(true);
-        menuPanel.SetActive(false);
-        Globals.isServer = true;
         Server.Instance.CreateServer();
+        if (Globals.isConnected)
+        {
+            chatPanel.SetActive(true);
+            menuPanel.SetActive(false);
+            Globals.isServer = true;
+        }
     }
 
     public void OpenClient()
     {
+        GetInput();
         clientObject.SetActive(true);
-        chatPanel.SetActive(true);
-        menuPanel.SetActive(false);
-        Globals.isServer = false;
         MyClient.Instance.ConnectToServer();
+        if (Globals.isConnected)
+        {
+            chatPanel.SetActive(true);
+            menuPanel.SetActive(false);
+            Globals.isServer = false;
+        }
     }
 }

@@ -21,8 +21,9 @@ public class MyClient : MonoBehaviour
         SendMessage("This is Client Speaking");
 
         // Start a separate thread for receiving messages
-        receiverThread = new Thread(ReceiveMessage);
+        receiverThread = new Thread(ReceiveMessages);
         receiverThread.Start();
+        Globals.isConnected = true;
     }
 
     public void SendMessage(string msg)
@@ -32,19 +33,32 @@ public class MyClient : MonoBehaviour
         Debug.Log("Client Sent :: " + msg);
     }
 
-    void ReceiveMessage()
+    public string ReceiveMessage()
+    {
+        byte[] bytes = new byte[256];
+        int bytesRead = stream.Read(bytes, 0, bytes.Length);
+
+        if (bytesRead > 0)
+        {
+            string msgFromServer = System.Text.Encoding.ASCII.GetString(bytes, 0, bytesRead);
+            Debug.Log("Message from Server :: " + msgFromServer);
+            return msgFromServer;
+        }
+
+        return null;
+    }
+
+    void ReceiveMessages()
     {
         while (true)
         {
-            byte[] bytes = new byte[256];
-            int bytesRead = stream.Read(bytes, 0, bytes.Length);
+            string receivedMsg = ReceiveMessage();
 
-            if (bytesRead > 0)
+            if (receivedMsg != null)
             {
-                string msgFromServer = System.Text.Encoding.ASCII.GetString(bytes, 0, bytesRead);
-                Debug.Log("Message from Server :: " + msgFromServer);
-                // Add any additional processing or pass the message to other scripts
+                Debug.Log("Message received by Client: " + receivedMsg);
             }
         }
     }
+
 }
