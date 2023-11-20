@@ -1,63 +1,51 @@
-using TMPro;
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 public static class Globals
 {
-    public static string IpAddress;
-    public static string Port;
-    public static string Message;
+    public static string ipAddress;
+    public static string port;
 }
 
 public class MenuController : MonoBehaviour
 {
-    public NetworkManager NetworkObject;
-    public Button HostButton;
-    public TMP_InputField IpField;
-    public Button JoinButton;
-    public TMP_InputField PortField;
+
+    public TMP_InputField ipField;
+    public TMP_InputField portField;
+    public GameObject serverObject;
+    public GameObject clientObject;
+    public Button hostButton;
+    public Button joinButton;
 
     // Start is called before the first frame update
-    private void Start()
+    void Start()
     {
-        HostButton.onClick.AddListener(HostServer);
-        JoinButton.onClick.AddListener(OpenClient);
+        hostButton.onClick.AddListener(HostServer);
+        joinButton.onClick.AddListener(OpenClient);
     }
 
     // Update is called once per frame
-    private void Update() => GetInput();
-
-    private void GetInput()
+    void Update()
     {
-        Globals.IpAddress = IpField.text;
-        Globals.Port = PortField.text;
+        GetInput();
+    }
+
+    void GetInput()
+    {
+        Globals.ipAddress = ipField.text;
+        Globals.port = portField.text;
     }
 
     public void HostServer()
     {
-        if (NetworkObject != null && int.TryParse(Globals.Port, out var port))
-        {
-            Debug.Log("Creating Server!!!");
-            NetworkObject.StartNetworking(true, Globals.IpAddress, port);
-            Debug.Log("Created Server!!!");
-        }
-
-        else
-        {
-            Debug.LogError("Invalid port number: " + Globals.Port);
-        }
+        serverObject.SetActive(true);
     }
 
     public void OpenClient()
     {
-        if (NetworkObject != null && int.TryParse(Globals.Port, out var port))
-        {
-            NetworkObject.StartNetworking(false, Globals.IpAddress, port);
-        }
-
-        else
-        {
-            Debug.LogError("Invalid port number: " + Globals.Port);
-        }
+        clientObject.SetActive(true);
     }
 }
