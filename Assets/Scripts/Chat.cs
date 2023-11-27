@@ -15,15 +15,13 @@ public class Chat : MonoBehaviour
     void Start()
     {
         sendButton.onClick.AddListener(SendMessage);
+        chatInput.add
+
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (chatInput.text != string.Empty)
-        {
-            GetChatInput();
-        }
 
       if (Globals.isConnected)
         {
@@ -41,13 +39,13 @@ public class Chat : MonoBehaviour
     {
         if (Globals.isServer)
         {
-            Server.Instance.SendMessage(chatMessage);
+            MyServer.Instance.SendData(chatMessage);
             Debug.Log(chatMessage);
         }
 
         else
         {
-            MyClient.Instance.SendMessage(chatMessage);
+            MyClient.Instance.SendData(chatMessage);
 
         }
     }
@@ -56,10 +54,10 @@ public class Chat : MonoBehaviour
     {
         if (Globals.isServer)
         {
-            if (Server.Instance.ReceiveMessage() != null)
+            if (MyServer.Instance.ReceiveMessage() != null)
             {
                 MessageBubble newMessageBubble = Instantiate(chatBubble, chatContentBox);
-                newMessageBubble.messageText = Server.Instance.ReceiveMessage();
+                newMessageBubble.messageText = MyServer.Instance.ReceiveMessage();
                 newMessageBubble.userText = Globals.Username + ":"; // to replace with receiving usernames.
 
             }

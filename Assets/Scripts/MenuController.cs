@@ -1,22 +1,8 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 using TMPro;
 using System.Net;
 using System;
-using UnityEngine.UIElements;
 using Button = UnityEngine.UI.Button;
-
-public static class Globals
-{
-    public static string Username;
-    public static string ipAddressString;
-    public static IPAddress ipAddress;
-    public static int port;
-    public static Boolean isServer;
-    public static Boolean isConnected = false;
-}
 
 public class MenuController : MonoBehaviour
 {
@@ -45,7 +31,7 @@ public class MenuController : MonoBehaviour
         if (ipField.text != string.Empty && portField.text != string.Empty)
         {
             Globals.ipAddressString = ipField.text;
-            Globals.ipAddress = IPAddress.Parse(Globals.ipAddressString);
+            Globals.ipAddress = IPAddress.Parse(ipField.text);
             Globals.port = Int32.Parse(portField.text);
             Globals.Username = userField.text;
         }
@@ -56,13 +42,10 @@ public class MenuController : MonoBehaviour
     {
         GetInput();
         serverObject.SetActive(true);
-        Server.Instance.CreateServer();
-        if (Globals.isConnected)
-        {
-            chatPanel.SetActive(true);
-            menuPanel.SetActive(false);
-            Globals.isServer = true;
-        }
+        MyServer.Instance.CreateServer();
+        chatPanel.SetActive(true);
+        menuPanel.SetActive(false);
+        Globals.isServer = true;
     }
 
     public void OpenClient()
@@ -70,11 +53,8 @@ public class MenuController : MonoBehaviour
         GetInput();
         clientObject.SetActive(true);
         MyClient.Instance.ConnectToServer();
-        if (Globals.isConnected)
-        {
-            chatPanel.SetActive(true);
-            menuPanel.SetActive(false);
-            Globals.isServer = false;
-        }
+        chatPanel.SetActive(true);
+        menuPanel.SetActive(false);
+        Globals.isServer = false;
     }
 }

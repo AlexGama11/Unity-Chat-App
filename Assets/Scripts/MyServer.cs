@@ -3,9 +3,9 @@ using System.Net.Sockets;
 using System.Threading;
 using System.Text;
 
-public class Server : MonoBehaviour
+public class MyServer : MonoBehaviour
 {
-    public static Server Instance;
+    public static MyServer Instance;
     private TcpListener server;
     private Thread serverThread;
     private NetworkStream stream = null;
@@ -25,10 +25,8 @@ public class Server : MonoBehaviour
         serverThread.Start();
     }
 
-    void ReceiverThread()
+    private void ReceiverThread()
     {
-
-
         while (true)
         {
             TcpClient client = server.AcceptTcpClient();
@@ -38,12 +36,12 @@ public class Server : MonoBehaviour
                 Debug.Log("Client is connected :: " + client.Client.LocalEndPoint);
                 stream = client.GetStream();
                 StartReceiving();
-                Globals.isConnected = true;
+                //Globals.isConnected = true;
             }
         }
     }
 
-    void StartReceiving()
+    private void StartReceiving()
     {
         while (true)
         {
@@ -55,14 +53,14 @@ public class Server : MonoBehaviour
                 {
                     // Process data sent by client
                     string msgForClient = "Server Ack :: " + receivedMsg;
-                    SendMessage(msgForClient);
+                    SendData(msgForClient);
                 }
             }
         }
     }
 
 
-    public void SendMessage(string msg)
+    public void SendData(string msg)
     {
         byte[] bytesToClient = Encoding.ASCII.GetBytes(msg);
         stream.Write(bytesToClient, 0, bytesToClient.Length);

@@ -18,15 +18,16 @@ public class MyClient : MonoBehaviour
     {
         client = new TcpClient(Globals.ipAddressString, Globals.port);
         stream = client.GetStream();
-        SendMessage("This is Client Speaking");
+        Debug.Log("Connected to server");
+        SendData("This is Client Speaking");
 
         // Start a separate thread for receiving messages
         receiverThread = new Thread(ReceiveMessages);
         receiverThread.Start();
-        Globals.isConnected = true;
+        //Globals.isConnected = true;
     }
 
-    public void SendMessage(string msg)
+    public void SendData(string msg)
     {
         byte[] bytes = System.Text.Encoding.ASCII.GetBytes(msg);
         stream.Write(bytes, 0, bytes.Length);
@@ -48,7 +49,7 @@ public class MyClient : MonoBehaviour
         return null;
     }
 
-    void ReceiveMessages()
+    private void ReceiveMessages()
     {
         while (true)
         {
