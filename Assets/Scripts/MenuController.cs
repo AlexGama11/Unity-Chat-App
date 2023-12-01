@@ -1,60 +1,61 @@
-using UnityEngine;
-using TMPro;
-using System.Net;
 using System;
-using Button = UnityEngine.UI.Button;
+using System.Net;
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
 
 public class MenuController : MonoBehaviour
 {
+    public GameObject ChatObject;
 
-    public TMP_InputField ipField;
-    public TMP_InputField portField;
-    public TMP_InputField userField;
-    public GameObject serverObject;
-    public GameObject clientObject;
-    public Button hostButton;
-    public Button joinButton;
+    public GameObject ChatPanel;
+    public GameObject ClientObject;
+    public Button HostButton;
 
-    public GameObject chatPanel;
-    public GameObject menuPanel;
+    public TMP_InputField IpField;
+    public Button JoinButton;
+    public GameObject MenuPanel;
+    public TMP_InputField PortField;
+    public GameObject ServerObject;
+    public TMP_InputField UserField;
 
     // Start is called before the first frame update
     private void Start()
     {
-        hostButton.onClick.AddListener(HostServer);
-        joinButton.onClick.AddListener(OpenClient);
+        HostButton.onClick.AddListener(HostServer);
+        JoinButton.onClick.AddListener(OpenClient);
     }
 
     private void GetInput()
     {
-
-        if (ipField.text != string.Empty && portField.text != string.Empty)
+        if (IpField.text != string.Empty && PortField.text != string.Empty)
         {
-            Globals.ipAddressString = ipField.text;
-            Globals.ipAddress = IPAddress.Parse(ipField.text);
-            Globals.port = Int32.Parse(portField.text);
-            Globals.Username = userField.text;
+            Globals.IpAddressString = IpField.text;
+            Globals.IpAddress = IPAddress.Parse(IpField.text);
+            Globals.Port = Int32.Parse(PortField.text);
+            Globals.Username = UserField.text;
         }
-
     }
 
     public void HostServer()
     {
         GetInput();
-        serverObject.SetActive(true);
-        MyServer.Instance.CreateServer();
-        chatPanel.SetActive(true);
-        menuPanel.SetActive(false);
-        Globals.isServer = true;
+        ServerObject.SetActive(true);
+        _ = MyServer.Instance.CreateServerAsync();
+        ChatPanel.SetActive(true);
+        MenuPanel.SetActive(false);
+        Globals.IsServer = true;
+        ChatObject.SetActive(true);
     }
 
     public void OpenClient()
     {
         GetInput();
-        clientObject.SetActive(true);
-        MyClient.Instance.ConnectToServer();
-        chatPanel.SetActive(true);
-        menuPanel.SetActive(false);
-        Globals.isServer = false;
+        ClientObject.SetActive(true);
+        _ = MyClient.Instance.ConnectToServerAsync(Globals.Username);
+        ChatPanel.SetActive(true);
+        MenuPanel.SetActive(false);
+        Globals.IsServer = false;
+        ChatObject.SetActive(true);
     }
 }

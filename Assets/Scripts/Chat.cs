@@ -1,76 +1,92 @@
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
 
 public class Chat : MonoBehaviour
 {
-    public TMP_InputField chatInput;
-    public Transform chatContentBox;
-    public MessageBubble chatBubble;
-    public string chatMessage;
+    public MessageBubble ChatBubble;
+    public Transform ChatContentBox;
+    public TMP_InputField ChatInput;
+    public string ChatMessage;
 
-    public Button sendButton;
+    // Define an event for message received
+    public delegate void MessageReceivedEventHandler(string username, string message);
+    public static event MessageReceivedEventHandler OnMessageReceived;
 
     // Start is called before the first frame update
-    void Start()
+    private void Start()
     {
-        sendButton.onClick.AddListener(SendMessage);
-        chatInput.add
+        // Subscribe the DisplayMessage method to the OnMessageReceived event
+        OnMessageReceived += DisplayMessage;
 
+        // Add an event listener for the "Submit" event (Enter key) on the ChatInput
+        ChatInput.onSubmit.AddListener(OnSubmit);
     }
 
-    // Update is called once per frame
-    void Update()
+    private void GetChatInput() => ChatMessage = ChatInput.text;
+
+    private async void SendMessage()
     {
+        GetChatInput();
 
-      if (Globals.isConnected)
+        if (!string.IsNullOrEmpty(ChatMessage))
         {
-            DisplayMessage(); // Change to OnMessageReceived event
-        }
-    }
-
-    void GetChatInput()
-    {
-       chatMessage = chatInput.text;
-       //Debug.Log(chatMessage);
-    }
-
-    void SendMessage()
-    {
-        if (Globals.isServer)
-        {
-            MyServer.Instance.SendData(chatMessage);
-            Debug.Log(chatMessage);
-        }
-
-        else
-        {
-            MyClient.Instance.SendData(chatMessage);
-
-        }
-    }
-
-    void DisplayMessage()
-    {
-        if (Globals.isServer)
-        {
-            if (MyServer.Instance.ReceiveMessage() != null)
+            if (Globals.IsServer)
             {
-                MessageBubble newMessageBubble = Instantiate(chatBubble, chatContentBox);
-                newMessageBubble.messageText = MyServer.Instance.ReceiveMessage();
-                newMessageBubble.userText = Globals.Username + ":"; // to replace with receiving usernames.
-
+                await MyServer.Instance.SendDataAsync(Globals.Username + ":" + ChatMessage);
+                Debug.Log(Globals.Username + ": " + ChatMessage);
             }
-            Debug.Log(chatMessage);
-        }
+            else
+            {
+                await MyClient.Instance.SendDataAsync(Globals.Username + ":" + ChatMessage);
+                Debug.Log(Globals.Username + ": " + ChatMessage);
+            }
 
+            // Clear the input field after sending the message
+            ChatInput.text = string.Empty;
+        }
+    }
+
+    // Display the message when the event is triggered
+    private void DisplayMessage(string username, string message)
+    {
+        string formattedMessage = $"{username}: {message}";
+        Debug.Log(formattedMessage);
+
+        // Use MainThreadDispatcher to instantiate the UI elements in the main thread
+        UnityMainThreadDispatcher.Instance().Enqueue(() =>
+        {
+            var newMessageBubble = Instantiate(ChatBubble, ChatContentBox);
+            newMessageBubble.GetComponent<MessageBubble>().SetUserText($"{username}:");
+            newMessageBubble.GetComponent<MessageBubble>().SetMessageText(message);
+        });
+    }
+
+    // Invoked when the user presses Enter
+    private void OnSubmit(string text)
+    {
+        SendMessage();
+    }
+    
+    private async void Update()
+    {
+        // Check for incoming messages regularly
+        if (Globals.IsServer)
+        {
+            (string receivedUsername, string receivedMessage) = await MyServer.Instance.ReceiveMessageAsync();
+            if (receivedMessage != null)
+            {
+                // Trigger the event when a message is received
+                OnMessageReceived?.Invoke(receivedUsername, receivedMessage);
+            }
+        }
         else
         {
-            if (MyClient.Instance.ReceiveMessage() != null)
+            (string receivedUsername, string receivedMessage) = await MyClient.Instance.ReceiveMessageAsync();
+            if (receivedMessage != null)
             {
-                MessageBubble newMessageBubble = Instantiate(chatBubble, chatContentBox);
-                newMessageBubble.messageText = MyClient.Instance.ReceiveMessage();
-                newMessageBubble.userText = Globals.Username + ":"; // to replace with receiving usernames.
+                // Trigger the event when a message is received
+                OnMessageReceived?.Invoke(receivedUsername, receivedMessage);
             }
         }
     }

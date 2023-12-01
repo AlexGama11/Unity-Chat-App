@@ -2,13 +2,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class UIController : MonoBehaviour
+public class UiController : MonoBehaviour
 {
 
     public GameObject LoginView;
     public GameObject ChatView;
 
-    public static UIController Instance;
+    public static UiController Instance;
 
     private void Awake()
     {

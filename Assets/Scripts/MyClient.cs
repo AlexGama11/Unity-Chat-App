@@ -1,64 +1,73 @@
 using UnityEngine;
 using System.Net.Sockets;
 using System.Threading;
+using System.Threading.Tasks;
 
 public class MyClient : MonoBehaviour
 {
     public static MyClient Instance;
-    private TcpClient client;
-    private NetworkStream stream;
-    private Thread receiverThread;
+    private TcpClient _client;
+    private NetworkStream _stream;
+    private Thread _receiverThread;
 
     private void Awake()
     {
         Instance = this;
     }
 
-    public void ConnectToServer()
+    public async Task ConnectToServerAsync(string username)
     {
-        client = new TcpClient(Globals.ipAddressString, Globals.port);
-        stream = client.GetStream();
+        _client = new TcpClient();
+        await _client.ConnectAsync(Globals.IpAddressString, Globals.Port);
+        _stream = _client.GetStream();
         Debug.Log("Connected to server");
-        SendData("This is Client Speaking");
+        await SendDataAsync("JOIN:" + username);
 
         // Start a separate thread for receiving messages
-        receiverThread = new Thread(ReceiveMessages);
-        receiverThread.Start();
-        //Globals.isConnected = true;
+        _receiverThread = new Thread(ReceiveMessages);
+        _receiverThread.Start();
     }
 
-    public void SendData(string msg)
+    public async Task SendDataAsync(string msg)
     {
         byte[] bytes = System.Text.Encoding.ASCII.GetBytes(msg);
-        stream.Write(bytes, 0, bytes.Length);
+        await _stream.WriteAsync(bytes, 0, bytes.Length);
         Debug.Log("Client Sent :: " + msg);
     }
 
-    public string ReceiveMessage()
+    public async Task<(string, string)> ReceiveMessageAsync()
     {
         byte[] bytes = new byte[256];
-        int bytesRead = stream.Read(bytes, 0, bytes.Length);
+        int bytesRead = await _stream.ReadAsync(bytes, 0, bytes.Length);
 
         if (bytesRead > 0)
         {
-            string msgFromServer = System.Text.Encoding.ASCII.GetString(bytes, 0, bytesRead);
-            Debug.Log("Message from Server :: " + msgFromServer);
-            return msgFromServer;
+            string receivedData = System.Text.Encoding.ASCII.GetString(bytes, 0, bytesRead);
+            string[] parts = receivedData.Split(':');
+
+            if (parts.Length == 2)
+            {
+                return (parts[0], parts[1]);
+            }
         }
 
-        return null;
+        return (null, null);
     }
 
-    private void ReceiveMessages()
+    private async void ReceiveMessages()
     {
         while (true)
         {
-            string receivedMsg = ReceiveMessage();
+            (string receivedUsername, string receivedMsg) = await ReceiveMessageAsync();
 
             if (receivedMsg != null)
             {
-                Debug.Log("Message received by Client: " + receivedMsg);
+                Debug.Log("Message received by Client: " + receivedUsername + ": " + receivedMsg);
+                // Handle the received message (possibly update UI using MainThreadDispatcher)
             }
+        
+            // Introduce a delay to avoid busy-waiting and give other tasks a chance to run
+            await Task.Delay(100);
         }
     }
 

@@ -1,84 +1,82 @@
-using UnityEngine;
 using System.Net.Sockets;
 using System.Threading;
-using System.Text;
+using System.Threading.Tasks;
+using UnityEngine;
 
 public class MyServer : MonoBehaviour
 {
     public static MyServer Instance;
-    private TcpListener server;
-    private Thread serverThread;
-    private NetworkStream stream = null;
+    private TcpListener _server;
+    private Thread _serverThread;
+    private NetworkStream _stream = null;
 
     private void Awake()
     {
         Instance = this;
     }
 
-    public void CreateServer()
+    public async Task CreateServerAsync()
     {
-        Debug.Log(Globals.ipAddressString);
-        server = new TcpListener(Globals.ipAddress, Globals.port);
-        server.Start();
+        Debug.Log(Globals.IpAddressString);
+        _server = new TcpListener(Globals.IpAddress, Globals.Port);
+        _server.Start();
         Debug.Log("Server created successfully");
-        serverThread = new Thread(ReceiverThread);
-        serverThread.Start();
+        await AcceptClientAsync();
     }
 
-    private void ReceiverThread()
+    private async Task AcceptClientAsync()
     {
         while (true)
         {
-            TcpClient client = server.AcceptTcpClient();
-            
-            if (client != null)
-            {
-                Debug.Log("Client is connected :: " + client.Client.LocalEndPoint);
-                stream = client.GetStream();
-                StartReceiving();
-                //Globals.isConnected = true;
-            }
+            TcpClient client = await _server.AcceptTcpClientAsync();
+            Debug.Log("Client is connected :: " + client.Client.LocalEndPoint);
+            _stream = client.GetStream();
+            await StartReceivingAsync();
         }
     }
 
-    private void StartReceiving()
+    private async Task StartReceivingAsync()
     {
         while (true)
         {
-            if (stream != null)
+            if (_stream != null)
             {
-                string receivedMsg = ReceiveMessage();
+                (string receivedUsername, string receivedMessage) = await ReceiveMessageAsync();
 
-                if (receivedMsg != null)
+                if (receivedMessage != null)
                 {
-                    // Process data sent by client
-                    string msgForClient = "Server Ack :: " + receivedMsg;
-                    SendData(msgForClient);
+                    // Process data sent by the client
+                    string msgForClient = receivedUsername + ": " + receivedMessage;
+                    await SendDataAsync(msgForClient);
                 }
             }
         }
     }
 
 
-    public void SendData(string msg)
+    public async Task SendDataAsync(string msg)
     {
-        byte[] bytesToClient = Encoding.ASCII.GetBytes(msg);
-        stream.Write(bytesToClient, 0, bytesToClient.Length);
+        byte[] bytesToClient = System.Text.Encoding.ASCII.GetBytes(msg);
+        await _stream.WriteAsync(bytesToClient, 0, bytesToClient.Length);
         Debug.Log("Server Sent :: " + msg);
     }
 
-    public string ReceiveMessage()
+    public async Task<(string, string)> ReceiveMessageAsync()
     {
         byte[] bytes = new byte[256];
-        int bytesRead = stream.Read(bytes, 0, bytes.Length);
+        int bytesRead = await _stream.ReadAsync(bytes, 0, bytes.Length);
 
         if (bytesRead > 0)
         {
-            string msg = System.Text.Encoding.ASCII.GetString(bytes, 0, bytesRead);
-            Debug.LogFormat("Server Received :: {0}", msg);
-            return msg;
+            string receivedData = System.Text.Encoding.ASCII.GetString(bytes, 0, bytesRead);
+            string[] parts = receivedData.Split(':');
+
+            if (parts.Length == 2)
+            {
+                return (parts[0], parts[1]);
+            }
         }
 
-        return null;
+        return (null, null);
     }
 }
