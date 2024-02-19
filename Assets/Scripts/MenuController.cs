@@ -8,7 +8,7 @@ public class MenuController : MonoBehaviour
 {
     public GameObject ChatObject;
 
-    public GameObject ChatPanel;
+    public GameObject GamePanel;
     public GameObject ClientObject;
     public Button HostButton;
 
@@ -42,10 +42,10 @@ public class MenuController : MonoBehaviour
         GetInput();
         ServerObject.SetActive(true);
         _ = MyServer.Instance.CreateServerAsync();
-        ChatPanel.SetActive(true);
+        //GamePanel.SetActive(true);
         MenuPanel.SetActive(false);
         Globals.IsServer = true;
-        ChatObject.SetActive(true);
+        //ChatObject.SetActive(true);
     }
 
     public void OpenClient()
@@ -53,9 +53,9 @@ public class MenuController : MonoBehaviour
         GetInput();
         ClientObject.SetActive(true);
         _ = MyClient.Instance.ConnectToServerAsync(Globals.Username);
-        ChatPanel.SetActive(true);
+        //GamePanel.SetActive(true);
         MenuPanel.SetActive(false);
         Globals.IsServer = false;
-        ChatObject.SetActive(true);
+        //ChatObject.SetActive(true);
     }
 }
